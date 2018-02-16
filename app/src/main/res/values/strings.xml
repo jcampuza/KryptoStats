@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Krypto Stats</string>
+    <string name="title_activity_single_coin">SingleCoin</string>
+    <string name="action_settings">Settings</string>
+</resources>
