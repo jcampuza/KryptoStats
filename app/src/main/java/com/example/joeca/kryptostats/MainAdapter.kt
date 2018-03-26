@@ -8,10 +8,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import com.example.joeca.kryptostats.Adapters.CoinItemAdapter
 import kotlinx.android.synthetic.main.currency_row.view.*
+import okhttp3.OkHttpClient
+import okhttp3.Request
 
 /**
- * Created by joeca on 2/15/2018.
+ * Created by Joseph Campuzano on 2/15/2018.
  */
 
 
@@ -20,6 +23,7 @@ typealias TickerMap = Map<String, Ticker>
 class MainAdapter(val tickers: TickerMap, val context: Context): RecyclerView.Adapter<MainAdapter.ViewHolder>() {
 
     var tickerList = cloneTickers()
+
 
     fun cloneTickers(): MutableList<Pair<String, Ticker>> {
         return tickers.toList().toMutableList()
