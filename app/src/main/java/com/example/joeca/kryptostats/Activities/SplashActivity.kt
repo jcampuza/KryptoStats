@@ -1,8 +1,10 @@
-package com.example.joeca.kryptostats
+package com.example.joeca.kryptostats.Activities
 
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import com.example.joeca.kryptostats.Activities.MainActivity
+import com.example.joeca.kryptostats.utils.start
 
 /**
  * Created by joeca on 2/15/2018.
@@ -11,9 +13,6 @@ import android.support.v7.app.AppCompatActivity
 class SplashActivity: AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val intent: Intent = Intent(this, MainActivity::class.java)
-        startActivity(intent)
-        this.finish()
+        MainActivity::class.start(this, true)
     }
 }

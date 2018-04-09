@@ -1,10 +1,13 @@
 package com.example.joeca.kryptostats.Models
 
+import okhttp3.Response
+import org.json.JSONObject
+
 /**
  * Created by Joseph Campuzano on 3/25/2018.
  */
 
-data class CoinModel (
+data class CoinModel(
         val Id: String,
         val Url: String,
         val ImageUrl: String,
@@ -20,6 +23,18 @@ data class CryptoCompareCoinListResponse(
         val BaseLinkUrl: String,
         val Data: Map<String, CoinModel>
 )
+
+data class CryptoCompareCoinPriceResponse(private val response: Response) {
+    val prices: MutableMap<String, Double> = mutableMapOf()
+
+    init {
+        val body = response.body()?.string()
+        val json = JSONObject(body)
+        json.keys().forEach {
+            prices[it] = json.getDouble(it)
+        }
+    }
+}
 
 /*
 Full Response from CryptoCompare CoinList

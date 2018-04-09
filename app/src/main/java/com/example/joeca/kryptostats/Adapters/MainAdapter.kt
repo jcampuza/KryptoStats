@@ -1,4 +1,4 @@
-package com.example.joeca.kryptostats
+package com.example.joeca.kryptostats.Adapters
 
 import android.content.Context
 import android.content.Intent
@@ -8,10 +8,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import com.example.joeca.kryptostats.Adapters.CoinItemAdapter
+import com.example.joeca.kryptostats.Activities.SingleCoinActivity
+import com.example.joeca.kryptostats.Activities.Ticker
+import com.example.joeca.kryptostats.R
 import kotlinx.android.synthetic.main.currency_row.view.*
-import okhttp3.OkHttpClient
-import okhttp3.Request
 
 /**
  * Created by Joseph Campuzano on 2/15/2018.

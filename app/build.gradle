@@ -49,6 +49,8 @@ dependencies {
     kapt "com.google.dagger:dagger-compiler:$daggerVersion"
     kapt "com.google.dagger:dagger-android-processor:$daggerVersion"
 
+    compile group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.2'
+
 //    annotationProcessor "com.google.dagger:dagger-android-processor:$daggerVersion"
 //    annotationProcessor "com.google.dagger:dagger-compiler:$daggerVersion"
 

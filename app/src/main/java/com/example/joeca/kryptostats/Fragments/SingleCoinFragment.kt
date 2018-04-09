@@ -1,13 +1,11 @@
-package com.example.joeca.kryptostats
+package com.example.joeca.kryptostats.Fragments
 
-import android.content.Context
 import android.support.v4.app.Fragment
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
-import kotlinx.android.synthetic.main.fragment_single_coin.*
+import com.example.joeca.kryptostats.R
 
 /**
  * A placeholder fragment containing a simple view.
