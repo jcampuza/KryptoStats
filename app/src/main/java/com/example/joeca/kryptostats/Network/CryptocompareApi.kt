@@ -12,11 +12,7 @@ class CryptocompareApi @Inject constructor(
         private val baseUrl: String,
         private val minBaseUrl: String
 ) {
-    private val requestBuilder = HttpUrl.parse(baseUrl)?.newBuilder()
-    private val minRequestBuilder= HttpUrl.parse(minBaseUrl)?.newBuilder()
-
-    fun createGetRequest(url: HttpUrl?): Call {
-        println(url)
+    private fun createGetRequest(url: HttpUrl?): Call {
         return Request.Builder()
                 .url(url)
                 .get()
@@ -27,7 +23,8 @@ class CryptocompareApi @Inject constructor(
     }
 
     fun coinPrice(query: String): Call {
-        val urlBuilder = minRequestBuilder
+        val urlBuilder = HttpUrl.parse(minBaseUrl)
+                ?.newBuilder()
                 ?.addPathSegment("data")
                 ?.addPathSegment("price")
                 ?.addQueryParameter("fsym", query)
@@ -37,7 +34,8 @@ class CryptocompareApi @Inject constructor(
     }
 
     fun coinList(): Call {
-        val urlBuilder = requestBuilder
+        val urlBuilder = HttpUrl.parse(baseUrl)
+                ?.newBuilder()
                 ?.addPathSegment("data")
                 ?.addPathSegment("coinlist")
 

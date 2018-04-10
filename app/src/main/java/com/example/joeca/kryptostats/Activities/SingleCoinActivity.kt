@@ -61,7 +61,7 @@ class SingleCoinActivity : AppCompatActivity() {
             override fun onResponse(call: Call?, response: Response?) {
                 if (response?.isSuccessful == true) {
                     val responseJson = CryptoCompareCoinPriceResponse(response)
-                    setPrice(responseJson.prices["USD"])
+                    setPrice(responseJson.prices["USD"]!!)
 //                    priceUsd = responseJson.prices["USD"]!!
                 } else {
                     println("Failed to fetch")

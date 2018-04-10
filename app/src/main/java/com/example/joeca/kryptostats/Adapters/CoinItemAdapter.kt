@@ -4,6 +4,9 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.widget.RecyclerView
+import android.transition.ChangeBounds
+import android.transition.TransitionManager
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,6 +15,9 @@ import com.example.joeca.kryptostats.Activities.CurrencyResponse
 import com.example.joeca.kryptostats.Models.CoinModel
 import com.example.joeca.kryptostats.R
 import com.example.joeca.kryptostats.Activities.SingleCoinActivity
+import com.example.joeca.kryptostats.Models.CryptoCompareCoinPriceResponse
+import com.example.joeca.kryptostats.Network.CryptocompareApi
+import com.example.joeca.kryptostats.R.id.coinDetails
 import com.example.joeca.kryptostats.R.id.recyclerView_main
 import com.google.gson.GsonBuilder
 import com.squareup.picasso.Picasso
@@ -27,105 +33,111 @@ import java.io.IOException
 typealias CoinMap = Map<String, CoinModel>
 
 class CoinItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-  val coinIcon = itemView.coinIcon
-  val coinFullName = itemView.coinFullName
-  val coinSymbol = itemView.coinSymbol
-  val coinPrice = itemView.coinPriceUsd
+    val coinIcon = itemView.coinIcon
+    val coinFullName = itemView.coinFullName
+    val coinSymbol = itemView.coinSymbol
+    val coinPrice = itemView.coinPrice
+    val coinSummary = itemView.coinSummary
+    val coinDetails = itemView.coinDetails
+    val coinAlgorithm = itemView.coinLayoutAlgorithm
+    val coinRank = itemView.coinLayoutRank
+    val coinPow = itemView.coinLayoutPoW
 }
 
-class CoinItemAdapter(recyclerView: RecyclerView, internal var activity: Activity, var items: CoinMap) : RecyclerView.Adapter<CoinItemViewHolder>() {
+class CoinItemAdapter(var recyclerView: RecyclerView, internal var activity: Activity, var items: CoinMap, val cryptoCompareApi: CryptocompareApi) : RecyclerView.Adapter<CoinItemViewHolder>() {
+    var itemsList = toList()
+    var isLoaded = false
+    var mExpandedPosition = -1
+    var previousExpandedPosition = -1
 
-  var itemsList = toList()
-  var isLoaded: Boolean = false;
-  var visibleThreshold = 5
-  var lastVisibleItem: Int = 0
-  var totalCount: Int = 0
+    private fun toList(): MutableList<Pair<String, CoinModel>> {
+        return items
+                .toList()
+                .sortedWith(compareBy({ it.second.SortOrder }))
+                .toMutableList()
+    }
 
-  fun toList(): MutableList<Pair<String, CoinModel>> {
-    return items.toList().toMutableList()
-  }
+    fun setIsLoaded(loaded: Boolean) {
+        this.isLoaded = loaded
+    }
 
-  fun setIsLoaded(loaded: Boolean) {
-    this.isLoaded = loaded
-  }
+    fun updateData(coinItems: Map<String, CoinModel>) {
+        this.items = coinItems
+        itemsList = toList()
+        notifyDataSetChanged()
+    }
 
-  fun updateData(coinItems: Map<String, CoinModel>) {
-    this.items = coinItems
-    itemsList = toList()
+    override fun onBindViewHolder(holder: CoinItemViewHolder?, position: Int) {
+        val coinModel = itemsList[position].second
+        val isExpanded = position == mExpandedPosition
+        val item = holder as CoinItemViewHolder
 
-    println("Updated data")
-    notifyDataSetChanged()
-  }
+        item.coinDetails.visibility = if (isExpanded) View.VISIBLE else View.GONE
+        item.coinSymbol.text = coinModel.Name
+        item.coinFullName.text = coinModel.CoinName
+        item.coinAlgorithm.text = coinModel.Algorithm
+        item.coinRank.text = coinModel.SortOrder.toString()
+        item.coinPow.text = coinModel.ProofType
 
-  override fun onBindViewHolder(holder: CoinItemViewHolder?, position: Int) {
-    val coinModel = itemsList[position].second
-
-    val item = holder as CoinItemViewHolder
-
-    item.apply {
-      coinSymbol.text = coinModel.Name
-      coinFullName.text = coinModel.CoinName
-      coinPrice.text = "100"
-
-      Picasso
-          .get()
-          .load("https://www.cryptocompare.com${coinModel.ImageUrl}")
-          .into(coinIcon)
-
-      itemView.setOnClickListener {
-        val context = holder.itemView.context
-        val intent: Intent = Intent(context, SingleCoinActivity::class.java)
-        val extras = Bundle();
-
-        extras.apply {
-          putString("ticker", coinModel.Name)
-          putString("name", coinModel.CoinName)
-          putString("url", coinModel.Url)
-          putString("imageUrl", coinModel.ImageUrl)
+        if (isExpanded) {
+            previousExpandedPosition = position
+            item.coinPrice.text = coinModel.Price.toString()
         }
 
-        intent.putExtras(extras)
-        context.startActivity(intent)
-      }
+        Picasso.get()
+                .load("https://www.cryptocompare.com${coinModel.ImageUrl}")
+                .into(item.coinIcon)
+
+        item.itemView.setOnClickListener({ _ ->
+            val transition = ChangeBounds()
+            transition.setDuration(200)
+            mExpandedPosition = if (isExpanded) -1 else position
+
+            TransitionManager.beginDelayedTransition(recyclerView, transition)
+            notifyItemChanged(position)
+            if (isExpanded) return@setOnClickListener
+
+            cryptoCompareApi.coinPrice(coinModel.Name).enqueue(object : Callback {
+                override fun onFailure(call: Call?, e: IOException?) {
+                    Toast.makeText(activity.applicationContext, "Oops, Failed to fetch Currencies", Toast.LENGTH_SHORT).show()
+                }
+
+                override fun onResponse(call: Call?, response: Response?) {
+                    var price: Double
+
+                    if (response?.isSuccessful == true) {
+                        val responseJson = CryptoCompareCoinPriceResponse(response)
+                        price = responseJson.prices["USD"]!!
+                    } else {
+                        price = -1.0
+                    }
+
+                    coinModel.Price = price
+                    activity.runOnUiThread {
+                        notifyDataSetChanged()
+                    }
+                }
+            })
+        })
     }
-  }
 
-//  fun fetchCoinPrice(coinItem: CoinModel) {
-//    val url = "https://www.cryptocompare.com/api/data/price?fsym=${coinItem.Name}"
-//    val request = Request.Builder().url(url).build()
-//
-//    val client = OkHttpClient()
-//
-//    client.newCall(request).enqueue(object : Callback {
-//      override fun onResponse(call: Call?, response: Response?) {
-//        val body = response?.body()?.string()
-//        println(body)
-//
-//
-//        val gson = GsonBuilder().create()
-//        val coinListResponse = gson.fromJson(body, CurrencyResponse::class.java)
-//        val tickers = coinListResponse.Data
-//
-//        runOnUiThread {
-//          recyclerView_main.adapter = MainAdapter(tickers, applicationContext)
-//        }
-//      }
-//
-//      override fun onFailure(call: Call?, e: IOException?) {
-//        println("Failed to execute API Request")
-//        Toast.makeText(applicationContext, "Ooops, failed to get Currencies", Toast.LENGTH_LONG).show()
-//      }
-//    })
-//  }
+    fun setDetailsPrice(price: String, itemView: CoinItemViewHolder, position: Int) {
+        println(price)
+        activity.runOnUiThread {
+            itemView.coinPrice.text = price
+            notifyItemChanged(position)
+            notifyItemChanged(previousExpandedPosition)
+        }
+    }
 
-  override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): CoinItemViewHolder {
-    val view = LayoutInflater.from(parent?.context)
-        .inflate(R.layout.coin_layout, parent, false)
+    override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): CoinItemViewHolder {
+        val view = LayoutInflater.from(parent?.context)
+                .inflate(R.layout.coin_layout, parent, false)
 
-    return CoinItemViewHolder(view)
-  }
+        return CoinItemViewHolder(view)
+    }
 
-  override fun getItemCount(): Int {
-    return itemsList.size
-  }
+    override fun getItemCount(): Int {
+        return itemsList.size
+    }
 }

@@ -13,7 +13,10 @@ data class CoinModel(
         val ImageUrl: String,
         val Name: String,
         val CoinName: String,
-        val ProofType: String
+        val ProofType: String,
+        var Price: Double,
+        val Algorithm: String,
+        val SortOrder: Int
 )
 
 data class CryptoCompareCoinListResponse(
@@ -29,6 +32,7 @@ data class CryptoCompareCoinPriceResponse(private val response: Response) {
 
     init {
         val body = response.body()?.string()
+        println(body)
         val json = JSONObject(body)
         json.keys().forEach {
             prices[it] = json.getDouble(it)

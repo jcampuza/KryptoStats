@@ -39,7 +39,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupCoinItemAdapter() {
-        adapter = CoinItemAdapter(recyclerView_main, this@MainActivity, items)
+        adapter = CoinItemAdapter(recyclerView_main, this@MainActivity, items, cryptoCompareApi)
 
         recyclerView_main.adapter = adapter
     }
